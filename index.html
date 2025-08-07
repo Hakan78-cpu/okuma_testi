@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<title>Özgürlük Nedir?</title>
+<script src="pipwerks.SCORM.min.js"></script>
+<script>
+    var scorm = pipwerks.SCORM, timerInterval;
+    var kelimeSayisi, startTime, readEndTime, questionStartTime, questionEndTime, totalStart, totalEnd;
+    window.onload = function() { scorm.init(); totalStart = new Date(); };
+    function formatTime(sec) {
+      var m=Math.floor(sec/60), s=sec%60;
+      return (m<10?'0':'')+m+":"+(s<10?'0':'')+s;
+    }
+    function kelimeSayisiniHesapla() {
+      return document.querySelector('#screen-reading').innerText.trim().split(/\s+/).length;
+    }
+    function startTest() {
+      document.getElementById('screen-intro').style.display='none';
+      document.getElementById('screen-reading').style.display='block';
+      startTime = new Date();
+      timerInterval = setInterval(function(){
+        document.getElementById('timer-reading').innerText = formatTime(Math.floor((new Date()-startTime)/1000));
+      },1000);
+    }
+    function finishReading() {
+      clearInterval(timerInterval);
+      readEndTime = new Date();
+      kelimeSayisi = kelimeSayisiniHesapla();
+      document.getElementById('screen-reading').style.display='none';
+      document.getElementById('screen-questions').style.display='block';
+      questionStartTime = new Date();
+    }
+    function submitAnswers() {
+      var correctCount=0, incorrectCount=0;
+      for(var i=1;i<=10;i++){
+        var els=document.getElementsByName('q'+i);
+        for(var j=0;j<els.length;j++){
+          els[j].disabled=true;
+          if(els[j].checked){
+            if(els[j].value==='1') correctCount++; else incorrectCount++;
+          }
+          if(els[j].value==='1') els[j].parentNode.classList.add('correct');
+          else if(els[j].checked) els[j].parentNode.classList.add('incorrect');
+        }
+      }
+      document.getElementById('btn-submit').style.display='none';
+      document.getElementById('btn-results').style.display='inline-block';
+      var blankCount=10-(correctCount+incorrectCount);
+      document.getElementById('summary-box').innerHTML='<b>✅ Doğru:</b>'+correctCount+' &nbsp; <b>❌ Yanlış:</b>'+incorrectCount+' &nbsp; <b>⚠️ Boş:</b>'+blankCount;
+      questionEndTime=new Date();
+      window._correctCount=correctCount;
+    }
+    function showResults(){
+      totalEnd=new Date();
+      var readingSecs=Math.floor((readEndTime-startTime)/1000),
+          questionSecs=Math.floor((questionEndTime-questionStartTime)/1000),
+          totalSecs=Math.floor((totalEnd-totalStart)/1000),
+          comprehension=Math.round((window._correctCount/10)*100);
+      scorm.set("cmi.core.score.min","0");
+      scorm.set("cmi.core.score.max","100");
+      scorm.set("cmi.core.score.raw",comprehension);
+      scorm.set("cmi.core.lesson_status","completed");
+      scorm.commit();
+      scorm.quit();
+      document.getElementById('screen-questions').style.display='none';
+      var r=document.getElementById('screen-result'); r.style.display='block';
+      r.querySelector('#result-time').innerText="Teste Toplam Geçen Süre: "+formatTime(totalSecs);
+      r.querySelector('#reading-time').innerText="Metni Okuma Süresi: "+formatTime(readingSecs);
+      r.querySelector('#question-time').innerText="Soruları Cevaplama Süresi: "+formatTime(questionSecs);
+      r.querySelector('#reading-speed').innerText="Bir dakikada okuduğu kelime sayısı: "+Math.round((kelimeSayisi/readingSecs)*60);
+      r.querySelector('#kelime-sayisi').innerText="Metindeki kelime sayısı: "+kelimeSayisi+" kelime";
+      r.querySelector('#comprehension').innerText="Anlama Oranı: % "+comprehension;
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #fce4ec);
+      color: #2c3e50;
+      font-size: 20px;
+      margin: 0;
+      padding: 0;
+    }
+    #content {
+      max-width: 880px;
+      margin: 60px auto;
+      background: #ffffff;
+      padding: 50px;
+      border-radius: 24px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    }
+    h2, h3 {
+      font-size: 32px;
+      color: #1a237e;
+      margin-bottom: 20px;
+    }
+    p {
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #1565c0;
+      color: #fff;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #0d47a1;
+      transform: scale(1.03);
+    }
+    .correct {
+      background: #c8e6c9;
+    }
+    .incorrect {
+      background: #ffcdd2;
+    }
+    #timer-reading {
+      float: right;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    ul {
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+    li label {
+      display: block;
+      padding: 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #summary-box {
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    @media screen and (max-width: 768px) {
+      #content { padding: 24px; }
+      button { width: 100%; font-size: 20px; }
+      h2, h3 { font-size: 26px; }
+    }
+</style>
+
+<style>
+  body {
+    background-color: #f5f5f5 !important;
+  }
+</style>
+
+
+<style>
+  body {
+    background: #f5f5f5 !important;
+    background-image: none !important;
+  }
+</style>
+
+</head>
+<body>
+<div id="content">
+<div id="screen-intro">
+<h2>Herkes Kendi Hikâyesini Yazar mı?</h2>
+<p>Bu testte, metni okuyup anlamaya yönelik 10 soruyu cevaplayacaksınız. Hazırsanız başlayalım.</p>
+<button onclick="startTest()">Teste Başla</button>
+</div>
+<div id="screen-reading" style="display:none;"><p>Hayat bir roman olsaydı, sen onun yazarı olur muydun, yoksa sadece bir karakter mi? Bu soru, insanlığın en eski sorgularından biridir. Gerçekten, herkes kendi hikâyesini mi yazar? Yoksa yaşadıklarımız, çoktan yazılmış bir senaryonun sahneleri midir sadece?</p>
+<p>Bazıları der ki: “Kader çizilmiştir, ne yaşanacaksa yaşanır.” Bu bakış açısı, rahatlatıcıdır. Çünkü sorumluluk yükünü azaltır. Olumsuz bir şey olduğunda, “demek ki böyle olması gerekiyormuş” diyerek kendini teselli edebilirsin. Ama aynı zamanda pasifleştiricidir de. Çünkü bu inançla hareket edersen, çaba göstermek gereksiz gibi görünür.</p>
+<p>Diğerleri ise, “İnsan kendi kaderini yazar” der. Onlara göre aldığımız her karar, attığımız her adım; geleceğimizi şekillendirir. Seçimlerimizin toplamıyızdır. Bu görüş güçlendiricidir; insana sorumluluk verir. Ama aynı zamanda yorucudur. Çünkü ne olursa olsun, iyi ya da kötü, senin kararın gibi hissedersin.</p>
+<p>Gerçek şu ki, yaşam bu iki uç arasında bir yerlerde akar. Bazı şeyler gerçekten bizim dışımızda gelişir: nerede doğduğumuz, hangi aileye ait olduğumuz, hangi dönemde yaşadığımız gibi. Ama bazı şeyler de bize bağlıdır: nasıl davrandığımız, neyi seçtiğimiz, nasıl baktığımız gibi.</p>
+<p>Örneğin bir trenin içindeyiz belki. Hangi istasyonda doğacağımıza biz karar veremiyoruz. Ama trenin camından bakıp ne göreceğimiz, hangi koltukta oturacağımız, yanımızdakilere nasıl davranacağımız bize ait. Kimi insanlar camdan dışarı bakarken karanlığı görür, kimi aynı camdan gün doğumunu izler.</p>
+<p>Yani evet, bazı bölümleri hayat yazıyor olabilir ama paragrafları biz tamamlıyoruz. Çünkü hayat, sadece başımıza gelenler değil; onlara nasıl karşılık verdiğimizdir. Aynı olay, iki farklı insanda iki farklı etki yaratabilir. Çünkü insanlar sadece yaşadıklarıyla değil, anlam yükledikleriyle şekillenir.</p>
+<p>Kendi hikâyesini yazmak; büyük kararlar almak ya da her şeyi kontrol etmek değildir. Bazen sadece bir düşünceyi değiştirmek, bir alışkanlığı bırakmak, bir hayale “evet” demektir. Küçük seçimler, büyük yön değişimleri yaratabilir.</p>
+<p>Ve belki de en önemlisi: Yazdığın hikâyeden memnun değilsen, sayfayı çevirebilirsin. Her gün, yeni bir cümleyle başlama şansın var. Geçmişi değiştiremezsin ama geleceği yazacak kalem hâlâ senin elinde olabilir.</p>
+<p>O hâlde tekrar soralım: Herkes kendi hikâyesini yazar mı? Belki evet, belki hayır. Ama en azından, anlatıcısı olmaya cesaret edebiliriz. Ve bu, çoğu zaman yeterlidir.</p>
+
+
+
+
+
+<div id="timer-reading">00:00</div>
+<button onclick="finishReading()">Okumayı Bitir</button>
+</div>
+<div id="screen-questions" style="display:none;"><h3>❓ Çoktan Seçmeli Sorular (10 Soru)</h3><ol><li>Metne göre kader anlayışı hangi etkiler yaratabilir?<ul><li><label><input name="q1" type="radio" value="0"/>İnsanı tamamen harekete geçirir</label></li><li><label><input name="q1" type="radio" value="1"/>Sorumluluk duygusunu azaltabilir</label></li><li><label><input name="q1" type="radio" value="0"/>Kişinin geçmişe takılmasını sağlar</label></li><li><label><input name="q1" type="radio" value="0"/>Plan yapmayı teşvik eder</label></li></ul></li><li>“Tren” benzetmesi metinde neyi temsil eder?<ul><li><label><input name="q2" type="radio" value="0"/>Ulaşım araçlarının güvenliğini</label></li><li><label><input name="q2" type="radio" value="0"/>Hayatın tamamen kontrol edilebilir olduğunu</label></li><li><label><input name="q2" type="radio" value="1"/>Hayatın hem dışsal hem içsel yönlerini</label></li><li><label><input name="q2" type="radio" value="0"/>Tren yolculuklarının keyfini</label></li></ul></li><li>Yazar, “bazı şeyler bizim dışımızda gelişir” derken neyi kastetmektedir?<ul><li><label><input name="q3" type="radio" value="0"/>İnsanların bencil olmasını</label></li><li><label><input name="q3" type="radio" value="0"/>Herkesin zengin olmak istemesini</label></li><li><label><input name="q3" type="radio" value="1"/>Doğum yeri, aile ve dönem gibi kontrol edilemeyen faktörleri</label></li><li><label><input name="q3" type="radio" value="0"/>Hayatın her zaman eğlenceli olduğunu</label></li></ul></li><li>Metne göre “kendi hikâyesini yazmak” ne anlama gelir?<ul><li><label><input name="q4" type="radio" value="0"/>Her durumu kontrol etmek</label></li><li><label><input name="q4" type="radio" value="0"/>Geçmişi tamamen unutmak</label></li><li><label><input name="q4" type="radio" value="1"/>Küçük seçimlerle yaşamın yönünü etkilemek</label></li><li><label><input name="q4" type="radio" value="0"/>Hayal kurmaktan vazgeçmek</label></li></ul></li><li>Yazarın metindeki genel yaklaşımı nasıldır?<ul><li><label><input name="q5" type="radio" value="0"/>Kaderin kesinliğini savunur</label></li><li><label><input name="q5" type="radio" value="0"/>Özgür iradenin her şeyi belirlediğini savunur</label></li><li><label><input name="q5" type="radio" value="1"/>Kader ve özgür irade arasında bir denge arar</label></li><li><label><input name="q5" type="radio" value="0"/>Hayatın anlamsızlığını vurgular</label></li></ul></li><li>Aşağıdakilerden hangisi metne göre bireyin yapabileceği bir şeydir?<ul><li><label><input name="q6" type="radio" value="0"/>Nerede doğacağını seçmek</label></li><li><label><input name="q6" type="radio" value="0"/>Geçmişi silmek</label></li><li><label><input name="q6" type="radio" value="1"/>Olaylara verdiği anlamı değiştirmek</label></li><li><label><input name="q6" type="radio" value="0"/>Zamanı durdurmak</label></li></ul></li><li>“İnsanlar sadece yaşadıklarıyla değil; anlam yükledikleriyle şekillenir.” ifadesi ne anlatmaktadır?<ul><li><label><input name="q7" type="radio" value="0"/>Herkes aynı şekilde düşünür</label></li><li><label><input name="q7" type="radio" value="0"/>Yaşanılan her şey insanı bozar</label></li><li><label><input name="q7" type="radio" value="1"/>Deneyimler değil, onların anlamlandırılması önemlidir</label></li><li><label><input name="q7" type="radio" value="0"/>Anlam yüklemek gereksizdir</label></li></ul></li><li>Metne göre neden “herkes kendi hikâyesini yazamaz” düşüncesi rahatlatıcıdır?<ul><li><label><input name="q8" type="radio" value="0"/>Kaderi kontrol etmek kolaydır</label></li><li><label><input name="q8" type="radio" value="1"/>Sorumluluğu başkasına yükleme duygusu sağlar</label></li><li><label><input name="q8" type="radio" value="0"/>İnsanlar daha az düşünür</label></li><li><label><input name="q8" type="radio" value="0"/>Hayal kurmaya teşvik eder</label></li></ul></li><li>Aşağıdakilerden hangisi metnin ana mesajı olabilir?<ul><li><label><input name="q9" type="radio" value="0"/>İnsan kendi kaderini tamamen belirler</label></li><li><label><input name="q9" type="radio" value="0"/>Yaşamda her şey rastlantıdır</label></li><li><label><input name="q9" type="radio" value="1"/>Hayat, başımıza gelenler değil; onlara verdiğimiz tepkilerdir</label></li><li><label><input name="q9" type="radio" value="0"/>Hikâye yazmak sadece yazarların işidir</label></li></ul></li><li>Yazarın son cümlesinde “anlatıcısı olmaya cesaret edebiliriz” ifadesiyle ne kastedilmektedir?<ul><li><label><input name="q10" type="radio" value="0"/>Hikâyeleri yüksek sesle okumak</label></li><li><label><input name="q10" type="radio" value="0"/>Başkalarının hikâyesini düzeltmek</label></li><li><label><input name="q10" type="radio" value="1"/>Kendi yaşamımızı anlamlandırmak için inisiyatif alabilmek</label></li><li><label><input name="q10" type="radio" value="0"/>Hayat hakkında roman yazmak</label></li></ul></li></ol>
+
+
+<button id="btn-submit" onclick="submitAnswers()">Testi Bitir</button>
+<button id="btn-results" onclick="showResults()" style="display:none;">Sonuçları Gör</button>
+<div id="summary-box"></div>
+</div>
+<div id="screen-result" style="display:none;">
+<h2>Sonuçlar</h2>
+<p id="kelime-sayisi"></p>
+<p id="result-time"></p>
+<p id="reading-time"></p>
+<p id="question-time"></p>
+<p id="reading-speed"></p>
+<p id="comprehension"></p>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var fsBtn = document.createElement('button');
+  fsBtn.id = 'fullscreen-btn';
+  fsBtn.innerHTML = '▢';  // square icon
+  fsBtn.style.position = 'fixed';
+  fsBtn.style.bottom = '20px';
+  fsBtn.style.right = '20px';
+  fsBtn.style.width = '40px';
+  fsBtn.style.height = '40px';
+  fsBtn.style.borderRadius = '8px';
+  fsBtn.style.border = 'none';
+  fsBtn.style.background = '#1565c0';
+  fsBtn.style.color = '#fff';
+  fsBtn.style.fontSize = '20px';
+  fsBtn.style.cursor = 'pointer';
+  document.body.appendChild(fsBtn);
+  fsBtn.addEventListener('click', function(){
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
